@@ -7,6 +7,7 @@ import os
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 has_cuda = torch.cuda.is_available()
+has_mps = hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
 
 include_dirs = [
     os.path.join(ROOT, "mast3r_slam/backend/include"),
@@ -43,8 +44,28 @@ if has_cuda:
             extra_compile_args=extra_compile_args,
         )
     ]
+elif has_mps:
+    sources.append("mast3r_slam/backend/src/gn_kernels_cpu.cpp")
+    sources.append("mast3r_slam/backend/src/matching_kernels_cpu.cpp")
+    ext_modules = [
+        CppExtension(
+            "mast3r_slam_backends",
+            include_dirs=include_dirs,
+            sources=sources,
+            extra_compile_args=extra_compile_args,
+        )
+    ]
 else:
-    print("CUDA not found, cannot compile backend!")
+    sources.append("mast3r_slam/backend/src/gn_kernels_cpu.cpp")
+    sources.append("mast3r_slam/backend/src/matching_kernels_cpu.cpp")
+    ext_modules = [
+        CppExtension(
+            "mast3r_slam_backends",
+            include_dirs=include_dirs,
+            sources=sources,
+            extra_compile_args=extra_compile_args,
+        )
+    ]
 
 setup(
     ext_modules=ext_modules,

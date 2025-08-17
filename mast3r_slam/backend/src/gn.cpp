@@ -21,8 +21,13 @@ std::vector<torch::Tensor> gauss_newton_points(
   CHECK_CONTIGUOUS(Q);
 
   // const at::cuda::OptionalCUDAGuard device_guard(device_of(x1));
+#ifdef WITH_CUDA
   return gauss_newton_points_cuda(Twc, Xs, Cs, ii, jj, idx_ii2jj, valid_match, Q,
       sigma_point, C_thresh, Q_thresh, max_iter, delta_thresh);
+#else
+  return gauss_newton_points_cpu(Twc, Xs, Cs, ii, jj, idx_ii2jj, valid_match, Q,
+      sigma_point, C_thresh, Q_thresh, max_iter, delta_thresh);
+#endif
 }
 
 std::vector<torch::Tensor> gauss_newton_rays(
@@ -47,8 +52,13 @@ std::vector<torch::Tensor> gauss_newton_rays(
   CHECK_CONTIGUOUS(Q);
 
   // const at::cuda::OptionalCUDAGuard device_guard(device_of(x1));
+#ifdef WITH_CUDA
   return gauss_newton_rays_cuda(Twc, Xs, Cs, ii, jj, idx_ii2jj, valid_match, Q,
       sigma_ray, sigma_dist, C_thresh, Q_thresh, max_iter, delta_thresh);
+#else
+  return gauss_newton_rays_cpu(Twc, Xs, Cs, ii, jj, idx_ii2jj, valid_match, Q,
+      sigma_ray, sigma_dist, C_thresh, Q_thresh, max_iter, delta_thresh);
+#endif
 }
 
 std::vector<torch::Tensor> gauss_newton_calib(
@@ -77,8 +87,13 @@ std::vector<torch::Tensor> gauss_newton_calib(
   CHECK_CONTIGUOUS(Q);
 
   // const at::cuda::OptionalCUDAGuard device_guard(device_of(x1));
+#ifdef WITH_CUDA
   return gauss_newton_calib_cuda(Twc, Xs, Cs, K, ii, jj, idx_ii2jj, valid_match, Q,
       height, width, pixel_border, z_eps, sigma_pixel, sigma_depth, C_thresh, Q_thresh, max_iter, delta_thresh);
+#else
+  return gauss_newton_calib_cpu(Twc, Xs, Cs, K, ii, jj, idx_ii2jj, valid_match, Q,
+      height, width, pixel_border, z_eps, sigma_pixel, sigma_depth, C_thresh, Q_thresh, max_iter, delta_thresh);
+#endif
 }
 
 std::vector<torch::Tensor> iter_proj(
@@ -94,8 +109,13 @@ std::vector<torch::Tensor> iter_proj(
   CHECK_CONTIGUOUS(p_init);
 
   // const at::cuda::OptionalCUDAGuard device_guard(device_of(x1));
-  return iter_proj_cuda(rays_img_with_grad, pts_3d_norm, p_init, 
+#ifdef WITH_CUDA
+  return iter_proj_cuda(rays_img_with_grad, pts_3d_norm, p_init,
       max_iter, lambda_init, cost_thresh);
+#else
+  return iter_proj_cpu(rays_img_with_grad, pts_3d_norm, p_init,
+      max_iter, lambda_init, cost_thresh);
+#endif
 }
 
 std::vector<torch::Tensor> refine_matches(
@@ -110,7 +130,11 @@ std::vector<torch::Tensor> refine_matches(
   CHECK_CONTIGUOUS(p1);
 
   // const at::cuda::OptionalCUDAGuard device_guard(device_of(x1));
+#ifdef WITH_CUDA
   return refine_matches_cuda(D11, D21, p1, window_size, dilation_max);
+#else
+  return refine_matches_cpu(D11, D21, p1, window_size, dilation_max);
+#endif
 }
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {

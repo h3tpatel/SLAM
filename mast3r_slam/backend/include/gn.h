@@ -10,7 +10,18 @@
 // Forward declaration
 std::vector<torch::Tensor> gauss_newton_points_cuda(
   torch::Tensor Twc, torch::Tensor Xs, torch::Tensor Cs,
-  torch::Tensor ii, torch::Tensor jj, 
+  torch::Tensor ii, torch::Tensor jj,
+  torch::Tensor idx_ii2jj, torch::Tensor valid_match,
+  torch::Tensor Q,
+  const float sigma_point,
+  const float C_thresh,
+  const float Q_thresh,
+  const int max_iter,
+  const float delta_thresh);
+
+std::vector<torch::Tensor> gauss_newton_points_cpu(
+  torch::Tensor Twc, torch::Tensor Xs, torch::Tensor Cs,
+  torch::Tensor ii, torch::Tensor jj,
   torch::Tensor idx_ii2jj, torch::Tensor valid_match,
   torch::Tensor Q,
   const float sigma_point,
@@ -32,7 +43,19 @@ std::vector<torch::Tensor> gauss_newton_points(
 
 std::vector<torch::Tensor> gauss_newton_rays_cuda(
   torch::Tensor Twc, torch::Tensor Xs, torch::Tensor Cs,
-  torch::Tensor ii, torch::Tensor jj, 
+  torch::Tensor ii, torch::Tensor jj,
+  torch::Tensor idx_ii2jj, torch::Tensor valid_match,
+  torch::Tensor Q,
+  const float sigma_ray,
+  const float sigma_dist,
+  const float C_thresh,
+  const float Q_thresh,
+  const int max_iter,
+  const float delta_thresh);
+
+std::vector<torch::Tensor> gauss_newton_rays_cpu(
+  torch::Tensor Twc, torch::Tensor Xs, torch::Tensor Cs,
+  torch::Tensor ii, torch::Tensor jj,
   torch::Tensor idx_ii2jj, torch::Tensor valid_match,
   torch::Tensor Q,
   const float sigma_ray,
@@ -59,7 +82,22 @@ std::vector<torch::Tensor> gauss_newton_rays(
 std::vector<torch::Tensor> gauss_newton_calib_cuda(
   torch::Tensor Twc, torch::Tensor Xs, torch::Tensor Cs,
   torch::Tensor K,
-  torch::Tensor ii, torch::Tensor jj, 
+  torch::Tensor ii, torch::Tensor jj,
+  torch::Tensor idx_ii2jj, torch::Tensor valid_match,
+  torch::Tensor Q,
+  const int height, const int width,
+  const int pixel_border,
+  const float z_eps,
+  const float sigma_pixel, const float sigma_depth,
+  const float C_thresh,
+  const float Q_thresh,
+  const int max_iter,
+  const float delta_thresh);
+
+std::vector<torch::Tensor> gauss_newton_calib_cpu(
+  torch::Tensor Twc, torch::Tensor Xs, torch::Tensor Cs,
+  torch::Tensor K,
+  torch::Tensor ii, torch::Tensor jj,
   torch::Tensor idx_ii2jj, torch::Tensor valid_match,
   torch::Tensor Q,
   const int height, const int width,
@@ -87,8 +125,8 @@ std::vector<torch::Tensor> gauss_newton_calib(
   const float delta_thresh);
 
 std::vector<torch::Tensor> iter_proj(
-  torch::Tensor rays_img_with_grad, 
-  torch::Tensor pts_3d_norm, 
+  torch::Tensor rays_img_with_grad,
+  torch::Tensor pts_3d_norm,
   torch::Tensor p_init,
   const int max_iter,
   const float lambda_init,
@@ -102,8 +140,23 @@ std::vector<torch::Tensor> iter_proj_cuda(
   const float lambda_init,
   const float cost_thresh);
 
+std::vector<torch::Tensor> iter_proj_cpu(
+  torch::Tensor rays_img_with_grad,
+  torch::Tensor pts_3d_norm,
+  torch::Tensor p_init,
+  const int max_iter,
+  const float lambda_init,
+  const float cost_thresh);
+
 std::vector<torch::Tensor> refine_matches_cuda(
-  torch::Tensor D11, 
+  torch::Tensor D11,
+  torch::Tensor D21,
+  torch::Tensor p1,
+  const int radius,
+  const int dilation_max);
+
+std::vector<torch::Tensor> refine_matches_cpu(
+  torch::Tensor D11,
   torch::Tensor D21,
   torch::Tensor p1,
   const int radius,
