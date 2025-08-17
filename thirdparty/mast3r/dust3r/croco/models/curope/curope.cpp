@@ -5,8 +5,10 @@
 
 #include <torch/extension.h>
 
-// forward declaration
+#ifdef WITH_CUDA
+// Forward declaration for the CUDA implementation.
 void rope_2d_cuda( torch::Tensor tokens, const torch::Tensor pos, const float base, const float fwd );
+#endif
 
 void rope_2d_cpu( torch::Tensor tokens, const torch::Tensor positions, const float base, const float fwd )
 {
@@ -58,10 +60,15 @@ void rope_2d( torch::Tensor tokens,     // B,N,H,D
     TORCH_CHECK(positions.size(2) == 2, "positions.shape[2] must be equal to 2");
     TORCH_CHECK(tokens.is_cuda() == positions.is_cuda(), "tokens and positions are not on the same device" );
 
-    if (tokens.is_cuda())
+    if (tokens.is_cuda()) {
+#ifdef WITH_CUDA
         rope_2d_cuda( tokens, positions, base, fwd );
-    else
+#else
+        TORCH_CHECK(false, "curope was not compiled with CUDA support");
+#endif
+    } else {
         rope_2d_cpu( tokens, positions, base, fwd );
+    }
 }
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
