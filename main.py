@@ -76,7 +76,7 @@ def run_backend(cfg, model, states, keyframes, K):
 
     device = keyframes.device
     factor_graph = FactorGraph(model, keyframes, K, device)
-    retrieval_database = load_retriever(model)
+    retrieval_database = load_retriever(model, device=device)
 
     mode = states.get_mode()
     while mode is not Mode.TERMINATED:
@@ -144,9 +144,15 @@ def run_backend(cfg, model, states, keyframes, K):
 
 if __name__ == "__main__":
     mp.set_start_method("spawn")
-    torch.backends.cuda.matmul.allow_tf32 = True
+    if torch.cuda.is_available():
+        torch.backends.cuda.matmul.allow_tf32 = True
     torch.set_grad_enabled(False)
-    device = "cuda:0"
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif getattr(torch.backends, "mps", None) is not None and torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
     save_frames = False
     datetime_now = str(datetime.datetime.now()).replace(" ", "_")
 
@@ -183,8 +189,8 @@ if __name__ == "__main__":
             intrinsics["calibration"],
         )
 
-    keyframes = SharedKeyframes(manager, h, w)
-    states = SharedStates(manager, h, w)
+    keyframes = SharedKeyframes(manager, h, w, device=device)
+    states = SharedStates(manager, h, w, device=device)
 
     if not args.no_viz:
         viz = mp.Process(
