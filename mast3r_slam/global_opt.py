@@ -10,7 +10,8 @@ import mast3r_slam_backends
 
 
 class FactorGraph:
-    def __init__(self, model, frames: SharedKeyframes, K=None, device="cuda"):
+    def __init__(self, model, frames: SharedKeyframes, K=None, device="cpu"):
+        device = torch.device(device)
         self.model = model
         self.frames = frames
         self.device = device
