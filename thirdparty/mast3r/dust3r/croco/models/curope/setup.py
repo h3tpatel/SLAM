@@ -3,32 +3,29 @@
 
 from setuptools import setup
 from torch import cuda
-from torch.utils.cpp_extension import BuildExtension, CUDAExtension
+from torch.utils.cpp_extension import BuildExtension, CUDAExtension, CppExtension
 
-# compile for all possible CUDA architectures
-all_cuda_archs = cuda.get_gencode_flags().replace('compute=','arch=').split()
-# alternatively, you can list cuda archs that you want, eg:
-# all_cuda_archs = [
-    # '-gencode', 'arch=compute_70,code=sm_70',
-    # '-gencode', 'arch=compute_75,code=sm_75',
-    # '-gencode', 'arch=compute_80,code=sm_80',
-    # '-gencode', 'arch=compute_86,code=sm_86'
-# ]
+
+def get_extension():
+    """Build a CUDA or C++ extension depending on CUDA availability."""
+    if cuda.is_available():
+        all_cuda_archs = cuda.get_gencode_flags().replace("compute=", "arch=").split()
+        return CUDAExtension(
+            name="curope",
+            sources=["curope.cpp", "kernels.cu"],
+            extra_compile_args={
+                "nvcc": ["-O3", "--ptxas-options=-v", "--use_fast_math"] + all_cuda_archs,
+                "cxx": ["-O3"],
+            },
+        )
+
+    # CPU-only build: the C++ file already contains a CPU implementation.
+    return CppExtension(name="curope", sources=["curope.cpp"], extra_compile_args=["-O3"])
+
 
 setup(
-    name = 'curope',
-    ext_modules = [
-        CUDAExtension(
-                name='curope',
-                sources=[
-                    "curope.cpp",
-                    "kernels.cu",
-                ],
-                extra_compile_args = dict(
-                    nvcc=['-O3','--ptxas-options=-v',"--use_fast_math"]+all_cuda_archs, 
-                    cxx=['-O3'])
-                )
-    ],
-    cmdclass = {
-        'build_ext': BuildExtension
-    })
+    name="curope",
+    ext_modules=[get_extension()],
+    cmdclass={"build_ext": BuildExtension},
+)
+
